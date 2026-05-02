@@ -1,8 +1,8 @@
 # 🧬 Multi-Omics Breast Cancer Analyzer
 
-An interactive bioinformatics dashboard for analyzing high-dimensional cancer datasets using machine learning techniques.
+An interactive bioinformatics dashboard for analyzing high-dimensional cancer datasets using machine learning and advanced visualization techniques.
 
-This project enables users to upload gene expression data, perform preprocessing, apply clustering models, and interpret biological insights through a user-friendly interface.
+This system enables users to upload gene expression data, perform preprocessing, compare multiple clustering models, visualize results, and extract biological insights through a user-friendly interface.
 
 ---
 
@@ -10,14 +10,15 @@ This project enables users to upload gene expression data, perform preprocessing
 
 Modern bioinformatics integrates multiple biological data types (multi-omics) to better understand diseases like cancer.
 
-This system focuses on:
+This project focuses on:
 
 * Gene Expression Analysis
-* Dimensionality Reduction (PCA)
-* Clustering (K-Means)
+* Dimensionality Reduction (PCA & t-SNE)
+* Clustering (K-Means & Hierarchical)
+* Model Comparison
 * Biological Interpretation
 
-The goal is to **identify hidden patient subtypes** and explore meaningful biological patterns.
+🎯 The goal is to identify hidden patient subtypes and explore meaningful biological patterns.
 
 ---
 
@@ -25,47 +26,55 @@ The goal is to **identify hidden patient subtypes** and explore meaningful biolo
 
 ### 📥 Data Handling
 
-* Upload `.csv`, `.tsv`, or `.tsv.gz` datasets
+* Upload `.csv`, `.tsv`, or `.gz` datasets
 * Automatic format detection
-* Dataset preview and summary
+* Safe dataset preview (large-data friendly)
+* Dataset summary and validation
 
 ### 🔍 Validation
 
 * Detect missing values
 * Identify incorrect data orientation
-* Warn about potential issues
+* Generate warnings for potential issues
+* Arrow-safe reporting (no serialization errors)
 
 ### 🧹 Preprocessing
 
 * Remove features with >20% missing values
 * Mean imputation for missing data
 * Automatic data transposition
+* Strict numeric conversion
 * Standard normalization
 
 ### ✂️ Feature Selection
 
 * Variance-based feature selection
-* Adjustable number of features (default: 2000)
+* Adjustable number of features (500–5000)
+* Default: 2000
 
 ### 🤖 Modeling
 
 * K-Means clustering
+* Hierarchical clustering
 * PCA for dimensionality reduction
+* Automatic model comparison and best model selection
 
 ### 📊 Evaluation
 
-* Silhouette score for clustering quality
+* Silhouette score
+* Side-by-side model comparison
 
 ### 🎨 Visualization
 
-* PCA-based cluster visualization
-* Color-coded patient groups
+* PCA cluster visualization
+* t-SNE visualization (non-linear projection)
+* Color-coded clusters
 
 ### 🧬 Interpretation
 
-* Cluster summary
+* Cluster summaries
 * Biological insight explanation
-* Model feedback (cluster quality)
+* Model feedback based on score
 
 ---
 
@@ -106,8 +115,8 @@ bioinformatics_dashboard/
 ### 1. Clone or Download Project
 
 ```
-git clone <your-repo-url>
-cd bioinformatics_dashboard
+git clone [Bioinformatics Dashboard](https://github.com/pravindag/bioinformatics-dashboard.git) 
+cd bioinformatics-dashboard
 ```
 
 ---
@@ -138,7 +147,7 @@ http://localhost:8501
 
 ## 📂 Input Data Requirements
 
-* Format: `.csv`, `.tsv`, or `.tsv.gz`
+* Format: `.csv`, `.tsv`, or `.gz`
 * Structure:
 
   * Rows = genes
@@ -154,20 +163,23 @@ http://localhost:8501
 2. Validate dataset
 3. Preprocess data
 4. Select features
-5. Run clustering
-6. Visualize results
-7. Interpret biological insights
-
+5. Run clustering models
+6. Compare models
+7. Visualize (PCA + t-SNE)
+8. Interpret results
+9. Download results
 ---
 
 ## 📊 Example Output
 
-* Dataset summary (samples & features)
-* Warnings (if any issues detected)
-* PCA cluster plot
-* Silhouette score
+* Dataset summary
+* Data warnings
+* PCA plot
+* t-SNE visualization
+* Model comparison scores
 * Cluster interpretation
 * Biological insights
+* Downloadable results
 
 ---
 
@@ -177,15 +189,18 @@ http://localhost:8501
 
 * Missing value handling
 * Feature filtering
-* Standardization
+* Numeric enforcement
+* Standard scaling
 
 ### Dimensionality Reduction
 
 * Principal Component Analysis (PCA)
+* t-distributed Stochastic Neighbor Embedding (t-SNE)
 
 ### Clustering
 
-* K-Means algorithm
+* K-Means
+* Hierarchical clustering
 
 ### Evaluation
 
@@ -195,9 +210,12 @@ http://localhost:8501
 
 ## 🧬 Biological Interpretation
 
-Clusters may represent **distinct molecular subtypes** of breast cancer.
+Clusters may represent distinct molecular subtypes of breast cancer.
 
-Further validation can be done using:
+* High silhouette score → strong separation
+* Low score → overlapping patterns
+
+Further validation can be performed using:
 
 * PAM50 subtype labels
 * Clinical survival data
@@ -210,28 +228,39 @@ This project demonstrates:
 
 * Handling high-dimensional biological data
 * Applying machine learning techniques
-* Building modular data pipelines
+* Building modular pipelines
 * Developing interactive dashboards
-* Interpreting results in a biological context
+* Interpreting results biologically
 
 ---
 
-## 🏆 Future Improvements
+## 🏆 Key Highlights
+* Model comparison (KMeans vs Hierarchical)
+* Advanced visualization (t-SNE + PCA)
+* Robust error handling
+* Downloadable outputs
+* Clean UI/UX
+* Scalable architecture
 
-* Add t-SNE / UMAP visualization
+---
+
+## 🚀 Future Improvements
+
 * Integrate clinical labels (PAM50)
-* Add supervised learning models
-* Feature importance analysis (SHAP)
-* Multi-omics integration support
+* Add supervised models
+* Feature importance (SHAP)
+* UMAP visualization
+* Multi-omics integration
 
 ---
 
 ## 👨‍💻 Author
 
-Developed as part of a Bioinformatics assignment project.
+**M D P U Gunathilake**  
+MSc in Data Science & Artificial Intelligence  
+
+Bioinformatics Project – Multi-Omics Breast Cancer Analysis  
+DSA 611 – Bioinformatics
 
 ---
 
-## 📜 License
-
-This project is for academic and educational use.
