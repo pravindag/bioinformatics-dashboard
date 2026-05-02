@@ -1,10 +1,11 @@
 from sklearn.feature_selection import VarianceThreshold
 
-def select_features(X, k=2000):
+def select_features(X, k):
     selector = VarianceThreshold()
     X_var = selector.fit_transform(X)
 
-    if X_var.shape[1] > k:
-        return X_var[:, :k]
+    # select top k features by variance
+    variances = X_var.var(axis=0)
+    top_k_idx = variances.argsort()[-k:]
 
-    return X_var
+    return X_var[:, top_k_idx]

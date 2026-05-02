@@ -41,3 +41,14 @@ def transpose_if_needed(df, orientation):
 def normalize_data(df):
     scaler = StandardScaler()
     return scaler.fit_transform(df)
+
+def match_samples(df1, df2):
+    """
+    Match samples using TCGA barcodes (intersection)
+    """
+    common_samples = df1.columns.intersection(df2.columns)
+
+    df1_matched = df1[common_samples]
+    df2_matched = df2[common_samples]
+
+    return df1_matched, df2_matched
