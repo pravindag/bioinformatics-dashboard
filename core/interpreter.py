@@ -2,15 +2,16 @@ def interpret_clusters(labels):
     n_clusters = len(set(labels))
 
     message = f"""
-    The model identified {n_clusters} distinct patient clusters.
+            The model identified {n_clusters} clusters.
 
-    These clusters may correspond to different molecular subtypes of breast cancer.
-    
-    For example:
-    - Cluster patterns may align with known subtypes such as Luminal A, Luminal B, HER2-enriched, or Basal-like.
-    
-    Further validation with clinical labels (e.g., PAM50) is required.
-    """
+            These clusters may correspond to molecular subtypes such as:
+            - Luminal A
+            - Luminal B
+            - HER2-enriched
+            - Basal-like
+
+            Further validation with PAM50 labels is required.
+            """
 
     return {"message": message}
 

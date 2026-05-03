@@ -1,11 +1,11 @@
 import sys
 import os
 
-# Fix module import path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 
 from core.data_loader import load_data
 from core.validator import validate_dataset, generate_warnings
@@ -14,21 +14,26 @@ from core.preprocessor import (
     impute_data,
     remove_non_numeric,
     transpose_if_needed,
-    normalize_data
+    normalize_data,
+    match_samples
 )
 from core.feature_selector import select_features
 from pipelines.clustering import clustering_pipeline
-from core.visualizer import (
-    plot_with_labels,
-    plot_tsne_clusters
-)
+from core.visualizer import plot_with_labels, plot_tsne_clusters, plot_survival
 from core.interpreter import interpret_clusters
 
 # =========================
 # PAGE CONFIG
 # =========================
-st.set_page_config(page_title="Bioinformatics Dashboard", page_icon="🧬", layout="wide")
+st.set_page_config(
+    page_title="Bioinformatics Dashboard",
+    page_icon="🧬",
+    layout="wide"
+)
 
+# =========================
+# CENTERED LAYOUT
+# =========================
 left, center, right = st.columns([1, 3, 1])
 
 with center:
@@ -41,121 +46,150 @@ with center:
     # =========================
     st.header("1️⃣ Upload Dataset")
 
-    with center:
-        col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 3, 1])
 
-        with col2:
-            uploaded_file = st.file_uploader(
-                "📂 Upload Gene Expression Dataset (CSV / TSV / GZ)",
-                type=["csv", "tsv", "gz"]
-            )
+    with col2:
+        uploaded_file = st.file_uploader(
+            "📂 Upload Gene Expression Dataset (CSV / TSV / GZ)",
+            type=["csv", "tsv", "gz"]
+        )
+
+        uploaded_file_2 = st.file_uploader(
+            "📂 Optional: Upload Second Dataset (Multi-Omics) (CSV / TSV / GZ)",
+            type=["csv", "tsv", "gz"],
+            key="second_dataset"
+        )
+
+        survival_file = st.file_uploader(
+            "📂 Optional: Upload Survival Data (CSV with Sample, time, event)",
+            type=["csv"],
+            key="survival_data"
+        )
 
     # =========================
     # MAIN PIPELINE
     # =========================
     if uploaded_file:
 
-        # =========================
         # LOAD DATA
-        # =========================
-        df = load_data(uploaded_file)
+        status = st.status("Loading dataset...", expanded=True)
+        with status:
+            st.write("Reading file...")
+            df = load_data(uploaded_file)
+        status.update(label="✅ Dataset loaded successfully!", state="complete")
 
-        st.success(f"✅ {uploaded_file.name} - Dataset has been loaded successfully!")
+        # MULTI-OMICS
+        if uploaded_file_2:
 
-        # =========================
-        # SAFE PREVIEW
-        # =========================
-        st.subheader("Preview (sampled for performance)")
+            status = st.status("Processing multi-omics datasets...", expanded=True)
 
+            with status:
+                st.write("Loading second dataset...")
+                df2 = load_data(uploaded_file_2)
+
+                st.write("Matching samples...")
+                df, df2 = match_samples(df, df2)
+
+                st.write("Merging datasets...")
+                df = pd.concat([df, df2], axis=1)
+
+            status.update(label="✅ Multi-omics integration complete!", state="complete")
+
+            # 🔥 NEW: show matched samples
+            st.info(f"Number of matched patients: {df.shape[1]}")
+
+        # PREVIEW
+        st.subheader("Preview (sampled)")
         df_preview = df.copy()
         df_preview = df_preview.apply(lambda col: pd.to_numeric(col, errors='coerce'))
         df_preview = df_preview.dropna(axis=1, how='all')
         df_preview = df_preview.iloc[:100, :50]
-
         st.dataframe(df_preview)
 
-        # =========================
         # VALIDATION
-        # =========================
         st.header("2️⃣ Data Validation")
-
         report = validate_dataset(df)
         warnings = generate_warnings(report)
 
         st.subheader("Dataset Summary")
         st.json(report)
 
-        st.write("Unique data types BEFORE cleaning:")
-        st.write([str(x) for x in df.dtypes.unique()])
-
         if warnings:
-            st.subheader("⚠ Warnings")
             for w in warnings:
                 st.warning(w)
 
-        # =========================
         # PREPROCESSING
-        # =========================
         st.header("3️⃣ Preprocessing")
-        st.info("Cleaning and preparing genomic data... 🧬")
 
-        df_clean = transpose_if_needed(df, report["orientation"])
-        df_clean = remove_high_missing(df_clean)
-        df_clean = impute_data(df_clean)
-        df_clean = remove_non_numeric(df_clean)
+        status = st.status("Preprocessing data...", expanded=True)
 
-        # 🔥 Safety check
+        with status:
+            st.write("Transposing if needed...")
+            df_clean = transpose_if_needed(df, report["orientation"])
+            st.write("Removing missing features...")
+            df_clean = remove_high_missing(df_clean)
+            st.write("Imputing missing values...")
+            df_clean = impute_data(df_clean)
+            st.write("Filtering numeric data...")
+            df_clean = remove_non_numeric(df_clean)
+
+        status.update(label="✅ Preprocessing complete!", state="complete")
+
         if df_clean.shape[0] == 0 or df_clean.shape[1] == 0:
-            st.error("Dataset became empty after preprocessing. Please check input data.")
+            st.error("Dataset became empty after preprocessing.")
             st.stop()
 
-        st.write("Unique data types AFTER cleaning:")
-        st.write([str(x) for x in df_clean.dtypes.unique()])
-
-        st.write(f"Final dataset: {df_clean.shape[0]} patients × {df_clean.shape[1]} features")
-
         col1, col2 = st.columns(2)
-        col1.metric("Patients", df_clean.shape[0])
-        col2.metric("Features", df_clean.shape[1])
+        col1.metric("Patients", f"{df_clean.shape[0]:,}")
+        col2.metric("Features", f"{df_clean.shape[1]:,}")
 
-        # Normalize
+        # NORMALIZATION
         X = normalize_data(df_clean)
 
-        # =========================
         # FEATURE SELECTION
-        # =========================
         st.header("4️⃣ Feature Selection")
-
         k_features = st.slider("Number of features", 500, 5000, 2000)
-        X_selected = select_features(X, k_features)
 
-        st.write("Selected feature shape:", X_selected.shape)
+        status = st.status("Selecting features...", expanded=True)
+        with status:
+            X_selected = select_features(X, k_features)
+        status.update(label="✅ Feature selection complete!", state="complete")
 
-        # =========================
-        # MODEL SELECTION
-        # =========================
+        # MODEL SETTINGS
         st.header("5️⃣ Model Selection")
-
         k_clusters = st.slider("Number of clusters (K)", 2, 10, 5)
         st.write(f"Selected number of clusters: {k_clusters}")
 
-        # =========================
         # RUN ANALYSIS
-        # =========================
         if st.button("🧬 Run Analysis"):
+
+            # 🔥 CRITICAL SAFETY CHECKS
+            if X_selected is None or len(X_selected) == 0:
+                st.error("No data available after preprocessing.")
+                st.stop()
+
+            if np.isnan(X_selected).any():
+                st.error("NaN values detected after preprocessing.")
+                st.stop()
+
+            if k_clusters >= len(X_selected):
+                st.error("K must be less than number of samples.")
+                st.stop()
 
             st.header("6️⃣ Results")
 
-            with st.spinner("Running clustering models... 🧬"):
+            status = st.status("Running clustering models...", expanded=True)
 
-                res_kmeans = clustering_pipeline(X_selected, model_type="kmeans", k=k_clusters)
-                res_hier = clustering_pipeline(X_selected, model_type="hierarchical", k=k_clusters)
+            with status:
+                st.write("Running KMeans...")
+                res_kmeans = clustering_pipeline(X_selected, "kmeans", k_clusters)
 
-            st.success("Analysis Complete!")
+                st.write("Running Hierarchical...")
+                res_hier = clustering_pipeline(X_selected, "hierarchical", k_clusters)
 
-            # =========================
+            status.update(label="✅ Clustering complete!", state="complete")
+
             # MODEL COMPARISON
-            # =========================
             st.subheader("Model Comparison")
 
             col1, col2 = st.columns(2)
@@ -170,35 +204,56 @@ with center:
                 best_model = "Hierarchical"
 
             st.info(f"Best performing model: {best_model}")
+            if len(set(results["labels"])) < 2:
+                st.warning("Only one cluster detected. Results may not be meaningful.")
 
-            # =========================
-            # RESULTS
-            # =========================
-            st.subheader("Clustering Score")
             st.metric("Silhouette Score", round(results["score"], 3))
 
-            # =========================
+            # SURVIVAL ANALYSIS
+            if survival_file:
+
+                st.subheader("Survival Analysis (Kaplan-Meier)")
+
+                status = st.status("Running survival analysis...", expanded=True)
+
+                with status:
+                    try:
+                        surv_df = pd.read_csv(survival_file)
+
+                        if not {"Sample", "time", "event"}.issubset(surv_df.columns):
+                            st.error("Survival file must contain: Sample, time, event")
+                        else:
+
+                            merged = pd.DataFrame({
+                                "Sample": df_clean.index,
+                                "Cluster": results["labels"]
+                            }).merge(surv_df, on="Sample")
+
+                            merged = merged.dropna()
+
+                            if merged.shape[0] == 0:
+                                st.warning("No matching samples for survival analysis.")
+                            else:
+                                fig_surv = plot_survival(
+                                    merged["time"].values,
+                                    merged["event"].values,
+                                    merged["Cluster"].values
+                                )
+                                st.pyplot(fig_surv)
+                                status.update(label="✅ Survival analysis complete!", state="complete")
+                    except Exception as e:
+                        st.error("Error occurred while running survival analysis!")
+
             # VISUALIZATION
-            # =========================
             st.subheader("Cluster Visualization (PCA)")
-
-            fig = plot_with_labels(results["X_reduced"], results["labels"])
-            st.pyplot(fig)
-
-            st.caption("Each color represents a different patient cluster")
+            st.pyplot(plot_with_labels(results["X_reduced"], results["labels"]))
 
             st.subheader("t-SNE Visualization (Non-linear Projection)")
+            st.pyplot(plot_tsne_clusters(X_selected, results["labels"]))
 
-            fig_tsne = plot_tsne_clusters(X_selected, results["labels"])
-            st.pyplot(fig_tsne)
-
-            # =========================
             # INTERPRETATION
-            # =========================
             st.subheader("Interpretation")
-
-            interpretation = interpret_clusters(results["labels"])
-            st.write(interpretation["message"])
+            st.write(interpret_clusters(results["labels"])["message"])
 
             # =========================
             # BIOLOGICAL INSIGHT
@@ -207,75 +262,19 @@ with center:
 
             st.write("""
             The identified clusters may represent distinct molecular subtypes of breast cancer.
-
-            Strong separation indicates biologically meaningful grouping of patients,
-            while weaker separation may reflect overlapping molecular characteristics.
-
-            Integration with clinical labels (e.g., PAM50) would enable robust biological validation
-            and subtype confirmation.
+            Strong separation suggests meaningful biological grouping.
             """)
-
-            # =========================
-            # FEEDBACK
-            # =========================
-            st.subheader("Model Feedback")
-
-            if results["score"] > 0.5:
-                st.success("Clusters are well separated (strong structure detected)")
-            else:
-                st.warning("""
-                Cluster separation is weak.
-
-                Consider:
-                • tuning cluster number (K)  
-                • improving feature selection  
-                • trying alternative models  
-                """)
-
-            # =========================
-            # SUMMARY REPORT
-            # =========================
-            st.subheader("Summary Report")
-
-            st.markdown(f"""
-            ### 🧬 Analysis Summary
-
-            - **Dataset Size:** {df_clean.shape[0]} patients × {df_clean.shape[1]} features  
-            - **Best Model:** {best_model}  
-            - **Silhouette Score:** {round(results["score"], 3)}  
-
-            ### 📊 Interpretation
-
-            The clustering analysis identified distinct patient subgroups based on gene expression patterns.
-
-            - High silhouette score → strong separation  
-            - Low score → overlapping biological signals  
-
-            ### 🧪 Biological Insight
-
-            These clusters may represent molecular subtypes of breast cancer.  
-            Further validation with clinical labels (e.g., PAM50) is recommended.
-
-            ---
-            """)
-
-            # =========================
-            # DOWNLOAD RESULTS
-            # =========================
-            st.subheader("Download Results")
-
+            # DOWNLOAD
             df_results = pd.DataFrame({
                 "Sample": df_clean.index,
                 "Cluster": results["labels"]
             })
 
-            csv = df_results.to_csv(index=False).encode("utf-8")
-
             st.download_button(
-                label="Download Clustering Results (CSV)",
-                data=csv,
-                file_name="clustering_results.csv",
-                mime="text/csv"
+                "📥 Download Results",
+                df_results.to_csv(index=False).encode("utf-8"),
+                "clustering_results.csv",
+                "text/csv"
             )
 
     else:

@@ -1,26 +1,7 @@
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-
-def plot_pca_clusters(X_reduced, labels):
-    fig, ax = plt.subplots()
-
-    scatter = ax.scatter(
-        X_reduced[:, 0],
-        X_reduced[:, 1],
-        c=labels,
-        cmap="viridis"
-    )
-
-    ax.set_title("PCA Cluster Visualization")
-    ax.set_xlabel("PC1")
-    ax.set_ylabel("PC2")
-
-    # 🔥 Add colorbar
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label("Cluster Label")
-
-    return fig
-
+from lifelines import KaplanMeierFitter
+import numpy as np
 
 def plot_with_labels(X_reduced, labels, true_labels=None):
     fig, ax = plt.subplots()
@@ -72,5 +53,28 @@ def plot_tsne_clusters(X, labels):
 
     cbar = plt.colorbar(scatter, ax=ax)
     cbar.set_label("Cluster")
+
+    return fig
+
+def plot_survival(time, event, labels):
+    kmf = KaplanMeierFitter()
+    fig, ax = plt.subplots()
+
+    labels = np.array(labels)
+
+    for cluster in np.unique(labels):
+        idx = labels == cluster
+
+        kmf.fit(
+            time[idx],
+            event_observed=event[idx],
+            label=f"Cluster {cluster}"
+        )
+
+        kmf.plot(ax=ax)
+
+    ax.set_title("Kaplan-Meier Survival Curve by Cluster")
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Survival Probability")
 
     return fig
