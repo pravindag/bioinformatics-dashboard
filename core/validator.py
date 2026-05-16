@@ -4,13 +4,10 @@ def validate_dataset(df):
     report["rows"] = df.shape[0]
     report["columns"] = df.shape[1]
 
-    # Missing values
     report["missing_ratio"] = df.isnull().mean().mean()
 
-    # Duplicate columns (sample IDs)
     report["duplicate_columns"] = df.columns.duplicated().sum()
 
-    # Heuristic: genes usually > samples
     if df.shape[0] > df.shape[1]:
         report["orientation"] = "genes_as_rows"
     else:

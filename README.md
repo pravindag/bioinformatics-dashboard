@@ -1,90 +1,133 @@
 # 🧬 Multi-Omics Breast Cancer Analyzer
 
-An interactive bioinformatics dashboard for analyzing high-dimensional cancer datasets using machine learning and advanced visualization techniques.
+An interactive bioinformatics dashboard for analyzing high-dimensional TCGA breast cancer datasets using machine learning, multi-omics integration, survival analysis, and advanced visualization techniques.
 
-This system enables users to upload gene expression data, perform preprocessing, compare multiple clustering models, visualize results, and extract biological insights through a user-friendly interface.
+This system enables users to upload genomic datasets, preprocess high-dimensional biological data, compare clustering models, visualize molecular patterns, and extract biologically meaningful insights through an interactive Streamlit interface.
 
 ---
 
-## 📌 Project Overview
+# 📌 Project Overview
 
-Modern bioinformatics integrates multiple biological data types (multi-omics) to better understand diseases like cancer.
+Modern bioinformatics combines multiple biological data types (multi-omics) to better understand diseases such as cancer.
 
 This project focuses on:
 
 * Gene Expression Analysis
+* Multi-Omics Integration
 * Dimensionality Reduction (PCA & t-SNE)
 * Clustering (K-Means & Hierarchical)
-* Model Comparison
+* Survival Analysis
 * Biological Interpretation
 
-🎯 The goal is to identify hidden patient subtypes and explore meaningful biological patterns.
+🎯 The primary goal is to identify hidden patient subtypes and explore biologically meaningful molecular patterns in breast cancer datasets.
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
-### 📥 Data Handling
+## 📥 Data Handling
 
 * Upload `.csv`, `.tsv`, or `.gz` datasets
 * Automatic format detection
-* Safe dataset preview (large-data friendly)
-* Dataset summary and validation
-
-### 🔍 Validation
-
-* Detect missing values
-* Identify incorrect data orientation
-* Generate warnings for potential issues
-* Arrow-safe reporting (no serialization errors)
-
-### 🧹 Preprocessing
-
-* Remove features with >20% missing values
-* Mean imputation for missing data
-* Automatic data transposition
-* Strict numeric conversion
-* Standard normalization
-
-### ✂️ Feature Selection
-
-* Variance-based feature selection
-* Adjustable number of features (500–5000)
-* Default: 2000
-
-### 🤖 Modeling
-
-* K-Means clustering
-* Hierarchical clustering
-* PCA for dimensionality reduction
-* Automatic model comparison and best model selection
-
-### 📊 Evaluation
-
-* Silhouette score
-* Side-by-side model comparison
-
-### 🎨 Visualization
-
-* PCA cluster visualization
-* t-SNE visualization (non-linear projection)
-* Color-coded clusters
-
-### 🧬 Interpretation
-
-* Cluster summaries
-* Biological insight explanation
-* Model feedback based on score
+* Safe preview for large datasets
+* TCGA-compatible dataset handling
+* Dataset validation and reporting
 
 ---
 
-## 🏗️ Project Structure
+## 🧬 Multi-Omics Integration
 
-```
+* Integration of multiple TCGA omics datasets
+* TCGA barcode harmonization
+* Shared-patient matching across datasets
+* Automatic duplicate sample removal
+* Multi-omics feature merging
+
+---
+
+## 🔍 Validation
+
+* Missing-value detection
+* Duplicate patient detection
+* Automatic orientation detection
+* Data integrity warnings
+* Arrow-safe dataframe handling
+
+---
+
+## 🧹 Preprocessing
+
+* Removal of features with >20% missing values
+* Median-based imputation
+* Strict numeric conversion
+* Removal of non-numeric metadata columns
+* Automatic dataset transposition
+* Standard normalization (`StandardScaler`)
+* Large-dataset optimization
+
+---
+
+## ✂️ Feature Selection
+
+* Variance-based feature selection
+* Adjustable feature count (500–5000)
+* Default selection: 2000 features
+
+---
+
+## 🤖 Modeling
+
+* K-Means clustering
+* Hierarchical clustering
+* Automatic model comparison
+* Best-model selection using silhouette score
+* PCA dimensionality reduction
+
+---
+
+## ❤️ Survival Analysis
+
+* Kaplan-Meier survival analysis
+* Cluster-wise survival comparison
+* Clinical phenotype integration
+* TCGA clinical data support
+
+---
+
+## 📊 Evaluation
+
+* Silhouette score evaluation
+* Side-by-side clustering comparison
+* Cluster quality assessment
+
+---
+
+## 🎨 Visualization
+
+* PCA cluster visualization
+* t-SNE non-linear visualization
+* Kaplan-Meier survival curves
+* Color-coded cluster plots
+* Cluster comparison visualizations
+
+---
+
+## 🧬 Biological Interpretation
+
+* Cluster summaries
+* Molecular subtype interpretation
+* Clinical significance discussion
+* Model feedback based on clustering quality
+
+---
+
+# 🏗️ Project Structure
+
+```text
 bioinformatics_dashboard/
 │
 ├── app/
-│   └── app.py                 # Streamlit dashboard
+│   └── app.py
 │
 ├── core/
 │   ├── data_loader.py
@@ -97,170 +140,205 @@ bioinformatics_dashboard/
 │   └── interpreter.py
 │
 ├── pipelines/
-│   ├── clustering.py
-│   ├── supervised.py
-│   └── hybrid.py
+│   ├── clustering.py│   
 │
 ├── config/
-│   └── config.yaml
-│
-└── notebook/
-    └── experiments.ipynb
+    └── config.yaml
 ```
-
 ---
 
-## ⚙️ Installation
+# ⚙️ Installation
 
-### 1. Clone or Download Project
+## 1️⃣ Clone Repository
 
-```
-git clone [Bioinformatics Dashboard](https://github.com/pravindag/bioinformatics-dashboard.git) 
+git clone https://github.com/pravindag/bioinformatics-dashboard.git
 cd bioinformatics-dashboard
-```
 
----
+## 2️⃣ Install Dependencies
 
-### 2. Install Dependencies
-
-```
-pip install streamlit pandas numpy scikit-learn matplotlib
-```
-
----
+pip install streamlit pandas numpy scikit-learn matplotlib lifelines
 
 ## ▶️ Running the Application
 
-From the project root directory:
-
-```
 streamlit run app/app.py
-```
-
-Then open your browser at:
-
-```
-http://localhost:8501
-```
 
 ---
 
-## 📂 Input Data Requirements
+# 📂 Supported Input Datasets
 
-* Format: `.csv`, `.tsv`, or `.gz`
-* Structure:
+## Primary Dataset
 
-  * Rows = genes
-  * Columns = samples (patients)
+Gene expression dataset:
 
-⚠️ The system will automatically transpose data if needed.
+* TCGA RNA-Seq
+* STAR-FPKM
+* .csv, .tsv, .gz
+
+## Optional Multi-Omics Dataset
+
+Examples:
+
+* DNA Methylation
+* miRNA expression
+* Copy-number variation
+
+## Optional Clinical Dataset
+
+TCGA clinical phenotype data:
+
+* survival information
+* patient metadata
+* vital status
 
 ---
 
-## 🔬 Workflow
+# 🔬 Workflow
 
-1. Upload dataset
-2. Validate dataset
-3. Preprocess data
-4. Select features
-5. Run clustering models
-6. Compare models
-7. Visualize (PCA + t-SNE)
-8. Interpret results
-9. Download results
+1. Upload TCGA gene expression dataset
+2. Optionally upload second omics dataset
+3. Match TCGA patient barcodes
+4. Validate and preprocess data
+5. Normalize and select features
+6. Run clustering models
+7. Compare clustering performance
+8. Perform survival analysis
+9. Visualize PCA / t-SNE projections
+10. Interpret biological significance
+11. Download clustering results
+
 ---
 
-## 📊 Example Output
+# 📊 Example Outputs
 
 * Dataset summary
-* Data warnings
-* PCA plot
+* Validation warnings
+* PCA visualization
 * t-SNE visualization
-* Model comparison scores
-* Cluster interpretation
-* Biological insights
-* Downloadable results
+* Kaplan-Meier survival curves
+* Clustering comparison scores
+* Biological interpretation
+* Downloadable cluster assignments
 
 ---
 
-## 🧠 Methodology
+# 🧠 Methodology
 
-### Preprocessing
+## Preprocessing
 
-* Missing value handling
-* Feature filtering
+* Missing-value filtering
 * Numeric enforcement
-* Standard scaling
+* Median imputation
+* Standard normalization
 
-### Dimensionality Reduction
+## Multi-Omics Integration
+
+* TCGA barcode standardization
+* Shared patient matching
+* Cross-omics feature integration
+
+## Dimensionality Reduction
 
 * Principal Component Analysis (PCA)
 * t-distributed Stochastic Neighbor Embedding (t-SNE)
 
-### Clustering
+## Clustering
 
-* K-Means
-* Hierarchical clustering
+* K-Means clustering
+* Hierarchical Agglomerative Clustering
 
-### Evaluation
+## Evaluation
 
 * Silhouette score
 
+## Survival Analysis
+
+* Kaplan-Meier survival estimation
+* Cluster-wise clinical comparison
+
 ---
 
-## 🧬 Biological Interpretation
+# 🧬 Biological Interpretation
 
-Clusters may represent distinct molecular subtypes of breast cancer.
+The discovered clusters may represent biologically distinct molecular subtypes of breast cancer, such as:
 
-* High silhouette score → strong separation
-* Low score → overlapping patterns
+* Luminal A
+* Luminal B
+* HER2-enriched
+* Basal-like
 
-Further validation can be performed using:
+Interpretation guidelines:
+
+* High silhouette score → strong cluster separation
+* Low silhouette score → overlapping molecular patterns
+
+Further biological validation can be performed using:
 
 * PAM50 subtype labels
 * Clinical survival data
+* External validation cohorts
 
 ---
 
-## 🎯 Learning Objectives
+# ⚡ Performance Optimizations
+
+To support large TCGA datasets, the system includes:
+
+* Cached preprocessing
+* Cached clustering pipelines
+* Session-state optimization
+* Memory-efficient float32 conversion
+* Large-dataset preview sampling
+* Adaptive t-SNE configuration
+
+---
+
+# 🎯 Learning Objectives
 
 This project demonstrates:
 
-* Handling high-dimensional biological data
-* Applying machine learning techniques
-* Building modular pipelines
-* Developing interactive dashboards
-* Interpreting results biologically
+* Handling high-dimensional biological datasets
+* Building modular bioinformatics workflows
+* Applying machine learning to genomics
+* Multi-omics integration techniques
+* Survival analysis in cancer research
+* Interactive dashboard development
+* Biological interpretation of clustering results
 
 ---
 
-## 🏆 Key Highlights
-* Model comparison (KMeans vs Hierarchical)
-* Advanced visualization (t-SNE + PCA)
-* Robust error handling
-* Downloadable outputs
-* Clean UI/UX
-* Scalable architecture
+# 🏆 Key Highlights
+
+* TCGA multi-omics integration
+* TCGA barcode harmonization
+* KMeans vs Hierarchical clustering comparison
+* PCA and t-SNE visualization
+* Kaplan-Meier survival analysis
+* Robust preprocessing pipeline
+* Large dataset optimization
+* Cached Streamlit architecture
+* Downloadable clustering outputs
+* Biological interpretation support
 
 ---
 
-## 🚀 Future Improvements
+# 🚀 Future Improvements
 
-* Integrate clinical labels (PAM50)
-* Add supervised models
-* Feature importance (SHAP)
+* Deep learning models (Autoencoders / VAEs)
+* SHAP-based feature interpretation
 * UMAP visualization
-* Multi-omics integration
+* Pathway enrichment analysis
+* Cloud deployment for large-scale datasets
+* External validation datasets
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Author
 
-**M D P U Gunathilake**  
-MSc in Data Science & Artificial Intelligence  
+M D P U Gunathilake
+MSc in Data Science & Artificial Intelligence
 
-Bioinformatics Project – Multi-Omics Breast Cancer Analysis  
 DSA 611 – Bioinformatics
+Multi-Omics Breast Cancer Analysis Project
 
----
+
 
