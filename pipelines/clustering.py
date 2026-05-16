@@ -2,7 +2,7 @@ from core.models import kmeans_model, apply_pca, hierarchical_clustering
 from core.evaluator import evaluate_clustering
 
 def clustering_pipeline(X, model_type="kmeans", k=5):
-    # PCA (common latent space for fair comparison)
+
     X_reduced, _ = apply_pca(X)
 
     if model_type == "kmeans":
