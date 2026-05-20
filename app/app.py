@@ -544,31 +544,129 @@ with center:
                             )
                             st.stop()
 
+                        st.write(
+                                    "Standardizing TCGA patient IDs..."
+                                )
+
                         surv_df["Sample"] = (
                             surv_df["sample"]
                             .astype(str)
                             .str[:12]
                         )
 
-                        surv_df["event"] = surv_df[
-                            "vital_status.demographic"
-                        ].map({
-                            "Dead": 1,
-                            "Alive": 0
-                        })
+                        st.write(
+                                    "Preparing survival events..."
+                                )
 
-                        if "days_to_death.demographic" in surv_df.columns:
+                        # =========================
+                        # DETECT VITAL STATUS COLUMN
+                        # =========================
+                        vital_col = None
+
+                        possible_vital_cols = [
+
+                            "vital_status.demographic",
+
+                            "vital_status",
+
+                            "patient.vital_status",
+
+                            "OS"
+
+                        ]
+
+                        for col in possible_vital_cols:
+
+                            if col in surv_df.columns:
+
+                                vital_col = col
+
+                                break
+
+                        if vital_col is None:
+
+                            st.error(
+                                "Could not find a valid "
+                                "vital status column."
+                            )
+
+                            st.write(
+                                "Available columns:"
+                            )
+
+                            st.write(
+                                surv_df.columns.tolist()
+                            )
+
+                            st.stop()
+
+                        # =========================
+                        # CREATE EVENT COLUMN
+                        # =========================
+                        surv_df["event"] = (
+
+                            surv_df[vital_col]
+
+                            .astype(str)
+
+                            .str.lower()
+
+                            .map({
+
+                                "dead": 1,
+
+                                "deceased": 1,
+
+                                "alive": 0
+
+                            })
+
+                        )
+
+                        st.write(
+                                    "Preparing survival times..."
+                                )
+
+                        # =========================
+                        # SURVIVAL TIME
+                        # =========================
+
+                        surv_df["time"] = np.nan
+
+                        if (
+                            "days_to_death.demographic"
+                            in surv_df.columns
+                        ):
+
+                            surv_df["time"] = pd.to_numeric(
+
+                                surv_df[
+                                    "days_to_death.demographic"
+                                ],
+
+                                errors="coerce"
+                            )
+
+                        if (
+                            "days_to_last_follow_up.diagnoses"
+                            in surv_df.columns
+                        ):
+
+                            follow_up = pd.to_numeric(
+
+                                surv_df[
+                                    "days_to_last_follow_up.diagnoses"
+                                ],
+
+                                errors="coerce"
+
+                            )
 
                             surv_df["time"] = surv_df[
-                                "days_to_death.demographic"
-                            ]
-
-                        elif "days_to_last_follow_up.diagnoses" in surv_df.columns:
-
-                            surv_df["time"] = surv_df[
-                                "days_to_last_follow_up.diagnoses"
-                            ]
-
+                                "time"
+                            ].fillna(
+                                follow_up
+                            )
 
                         surv_df = surv_df[
                             ["Sample", "time", "event"]
@@ -589,25 +687,59 @@ with center:
 
                         merged = merged.dropna()
 
+                        st.write(
+                                    "Matched survival samples:",
+                                    merged.shape[0]
+                                )
+                        
+                        st.write(
+                                    "Detected clusters:",
+                                    merged["Cluster"].unique()
+                                )
+
                         if merged.shape[0] == 0:
 
                             st.warning(
-                                "No overlapping samples found."
+                                "No overlapping samples found "
+                                "between clustering results "
+                                "and survival dataset."
                             )
 
                         else:
 
-                            fig_surv = plot_survival(
-                                merged["time"].values,
-                                merged["event"].values,
-                                merged["Cluster"].values
+                            st.write(
+                                "Generating Kaplan-Meier curves..."
                             )
 
-                            st.pyplot(fig_surv)
+                            # =========================
+                            # PLOT SURVIVAL
+                            # =========================
+
+                    st.pyplot(
+                        plot_survival(
+
+                            merged["time"].values,
+
+                            merged["event"].values,
+
+                            merged["Cluster"].values
+
+                        )
+                    )
+
+                    st.caption(
+                        """
+                        Kaplan-Meier survival curves
+                        comparing patient clusters.
+                        """
+                    )
 
                     status.update(
+
                         label="✅ Survival analysis complete!",
+
                         state="complete"
+
                     )
 
                 # =========================
@@ -676,7 +808,7 @@ with center:
             except Exception as e:
 
                 st.error(
-                    "An error occurred during analysis"
+                     f"An error occurred during analysis: {e}"
                 )
 
         else:

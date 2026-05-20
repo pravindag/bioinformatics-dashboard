@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from lifelines import KaplanMeierFitter
 import numpy as np
+import pandas as pd
 
 # =========================
 # PCA VISUALIZATION
@@ -92,27 +93,57 @@ def plot_survival(time, event, labels):
 
     kmf = KaplanMeierFitter()
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    time = pd.to_numeric(
+        time,
+        errors="coerce"
+    )
+
+    event = pd.to_numeric(
+        event,
+        errors="coerce"
+    )
 
     labels = np.array(labels)
+
+    valid = ~np.isnan(time)
+
+    time = time[valid]
+    event = event[valid]
+    labels = labels[valid]
+
+    fig, ax = plt.subplots(
+        figsize=(8, 6)
+    )
 
     for cluster in np.unique(labels):
 
         idx = labels == cluster
 
         kmf.fit(
+
             time[idx],
+
             event_observed=event[idx],
+
             label=f"Cluster {cluster}"
+
         )
 
         kmf.plot(ax=ax)
 
-    ax.set_title("Kaplan-Meier Survival Curve by Cluster")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Survival Probability")
+    ax.set_title(
+        "Kaplan-Meier Survival Analysis "
+        "by Patient Cluster"
+    )
+
+    ax.set_xlabel("Time (Days)")
+
+    ax.set_ylabel(
+        "Survival Probability"
+    )
 
     ax.grid(True)
+
     ax.legend()
 
     return fig
