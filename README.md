@@ -140,11 +140,24 @@ bioinformatics_dashboard/
 │   └── interpreter.py
 │
 ├── pipelines/
-│   ├── clustering.py│   
+│   ├── clustering.py  
 │
 ├── config/
     └── config.yaml
 ```
+---
+
+# 🛠️ Technologies Used
+
+- Python
+- Streamlit
+- Scikit-learn
+- Pandas
+- NumPy
+- Matplotlib
+- Lifelines
+- TCGA / UCSC Xena
+
 ---
 
 # ⚙️ Installation
@@ -156,7 +169,7 @@ cd bioinformatics-dashboard
 
 ## 2️⃣ Install Dependencies
 
-pip install streamlit pandas numpy scikit-learn matplotlib lifelines
+pip install -r requirements.txt
 
 ## ▶️ Running the Application
 

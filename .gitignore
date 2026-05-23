@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.streamlit/
+.env
+data/
+*.gz
+*.tsv
+*.csv
