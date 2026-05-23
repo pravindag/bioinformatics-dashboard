@@ -58,7 +58,7 @@ This project focuses on:
 ## 🧹 Preprocessing
 
 * Removal of features with >20% missing values
-* Median-based imputation
+* Mean-based imputation
 * Strict numeric conversion
 * Removal of non-numeric metadata columns
 * Automatic dataset transposition
@@ -227,7 +227,7 @@ TCGA clinical phenotype data:
 
 * Missing-value filtering
 * Numeric enforcement
-* Median imputation
+* Mean imputation
 * Standard normalization
 
 ## Multi-Omics Integration

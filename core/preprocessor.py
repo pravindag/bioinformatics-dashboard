@@ -29,17 +29,11 @@ def impute_data(df):
     Optimized for large TCGA datasets.
     """
 
-    # =========================
-    # REPLACE PLACEHOLDERS
-    # =========================
     df = df.replace(
         ["NA", "NaN", "null", "--", "?", ""],
         np.nan
     )
 
-    # =========================
-    # FORCE NUMERIC
-    # =========================
     df = df.apply(
         lambda col: pd.to_numeric(
             col,
@@ -47,33 +41,24 @@ def impute_data(df):
         )
     )
 
-    # =========================
-    # REMOVE EMPTY COLUMNS
-    # =========================
     df = df.dropna(axis=1, how='all')
 
-    # =========================
-    # REMOVE EMPTY ROWS
-    # =========================
     df = df.dropna(axis=0, how='all')
 
-    # =========================
-    # KEEP NUMERIC ONLY
-    # =========================
     df = df.select_dtypes(
         include=[np.number]
     )
 
-    # =====================================================
-    # LIMIT FEATURES BEFORE IMPUTATION
-    # =====================================================
     if df.shape[1] > 5000:
 
-        df = df.iloc[:, :5000]
+        variances = df.var()
 
-    # =====================================================
-    # SAMPLE SUBSETTING FOR DEMO
-    # =====================================================
+        top_features = variances.sort_values(
+            ascending=False
+        ).head(5000).index
+
+        df = df[top_features]
+
     if df.shape[0] > 2000:
 
         df = df.sample(
@@ -82,9 +67,16 @@ def impute_data(df):
         )
 
     # =========================
-    # FASTER IMPUTATION
+    # MEAN IMPUTATION
     # =========================
-    df = df.fillna(df.median())
+    df = df.fillna(
+        df.mean(numeric_only=True)
+    )
+
+    # =========================
+    # MEMORY OPTIMIZATION
+    # =========================
+    df = df.astype(np.float32)
 
     return df
 

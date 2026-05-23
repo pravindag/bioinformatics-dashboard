@@ -262,7 +262,7 @@ with center:
         """
         - Transposes dataset if samples are in rows instead of columns.
         - Removes features with >50% missing values.
-        - Imputes remaining missing values using median imputation.
+        - Imputes remaining missing values using mean imputation.
         - Filters out non-numeric features that cannot be used for clustering.
         """
         )
@@ -363,6 +363,10 @@ with center:
             "Selected feature shape:",
             X_selected.shape
         )
+
+        top_features = df_clean.var().sort_values(
+            ascending=False
+        ).head(10)
 
         # =========================
         # MODEL SETTINGS
