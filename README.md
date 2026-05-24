@@ -1,4 +1,4 @@
-# 🧬 Multi-Omics Breast Cancer Analyzer
+# 🧬 Multi-Omic Breast Cancer Analyzer
 
 An interactive bioinformatics dashboard for analyzing high-dimensional TCGA breast cancer datasets using machine learning, multi-omics integration, survival analysis, and advanced visualization techniques.
 
@@ -164,16 +164,22 @@ bioinformatics_dashboard/
 
 ## 1️⃣ Clone Repository
 
+```bash
 git clone https://github.com/pravindag/bioinformatics-dashboard.git
 cd bioinformatics-dashboard
+```
 
 ## 2️⃣ Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
 ## ▶️ Running the Application
 
+```bash
 streamlit run app/app.py
+```
 
 ---
 
